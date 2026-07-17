@@ -1,5 +1,7 @@
 # E-commerce Data Pipeline
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+
 A robust Python-based data pipeline for analyzing e-commerce transactions. This project focuses on data extraction, transformation, and visualization to provide key insights into consumer behavior and sales performance.
 
 ## Project Structure
