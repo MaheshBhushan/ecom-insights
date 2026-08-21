@@ -6,14 +6,12 @@ import argparse
 import logging
 import pandas as pd
 from datetime import datetime, timedelta
-import schedule
-import time
 import sys
 
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-from src.config import PATHS
+from src.config import PATHS, DATA_ANCHOR_DATE
 from src.utils import setup_logging, ensure_dir, save_dataframe
 from src.extraction.data_extractor import DataExtractor
 from src.transformation.data_transformer import DataTransformer
@@ -42,9 +40,9 @@ def run_pipeline(data_source='sample', start_date=None, end_date=None):
     
     # Set default date range if not provided
     if not end_date:
-        end_date = datetime.now().strftime('%Y-%m-%d')
+        end_date = DATA_ANCHOR_DATE
     if not start_date:
-        start_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+        start_date = (datetime.strptime(DATA_ANCHOR_DATE, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
     
     logger.info(f"Processing data from {start_date} to {end_date}")
     
@@ -195,7 +193,7 @@ def create_dummy_data():
     ensure_dir(PATHS['raw_data'])
     
     # Generate dates
-    end_date = datetime.now()
+    end_date = datetime.strptime(DATA_ANCHOR_DATE, '%Y-%m-%d')
     start_date = end_date - timedelta(days=365)
     date_range = pd.date_range(start=start_date, end=end_date, freq='D')
     
@@ -293,30 +291,6 @@ def create_dummy_data():
     
     logger.info("Dummy data created successfully")
 
-def schedule_pipeline():
-    """Schedule the data pipeline to run at specified intervals."""
-    logger.info("Setting up scheduled pipeline runs")
-    
-    # Run daily at 1:00 AM
-    schedule.every().day.at("01:00").do(run_pipeline, data_source='database')
-    
-    # Run weekly on Monday at 2:00 AM
-    schedule.every().monday.at("02:00").do(run_pipeline, data_source='database', 
-                                          start_date=(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
-    
-    # Run monthly on the 1st at 3:00 AM
-    schedule.every().month.at("03:00").do(run_pipeline, data_source='database',
-                                         start_date=(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
-    
-    logger.info("Pipeline scheduled. Press Ctrl+C to exit.")
-    
-    try:
-        while True:
-            schedule.run_pending()
-            time.sleep(60)
-    except KeyboardInterrupt:
-        logger.info("Scheduler stopped by user")
-
 def main():
     """Main entry point for the application."""
     parser = argparse.ArgumentParser(description='E-commerce Data Pipeline')
@@ -324,14 +298,10 @@ def main():
                         help='Source of data (sample, database, api)')
     parser.add_argument('--start-date', help='Start date for data extraction (YYYY-MM-DD)')
     parser.add_argument('--end-date', help='End date for data extraction (YYYY-MM-DD)')
-    parser.add_argument('--schedule', action='store_true', help='Run the pipeline on a schedule')
     
     args = parser.parse_args()
     
-    if args.schedule:
-        schedule_pipeline()
-    else:
-        run_pipeline(data_source=args.source, start_date=args.start_date, end_date=args.end_date)
+    run_pipeline(data_source=args.source, start_date=args.start_date, end_date=args.end_date)
 
 if __name__ == '__main__':
     main() 

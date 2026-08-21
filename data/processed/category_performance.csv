@@ -1,0 +1,6 @@
+category,order_count,unique_products,units_sold,total_revenue,revenue_per_product,average_units_per_order
+Sports,434,10,868,91960,9196.0,2.0
+Books,434,10,866,81830,8183.0,1.9953917050691243
+Home,434,10,868,65770,6577.0,2.0
+Clothing,433,10,868,55300,5530.0,2.004618937644342
+Electronics,434,10,868,40330,4033.0,2.0

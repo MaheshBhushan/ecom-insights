@@ -41,7 +41,7 @@ class DataAnalyzer:
         elif time_period == 'weekly':
             grouped = df.groupby(pd.Grouper(key='order_date', freq='W-MON'))
         elif time_period == 'monthly':
-            grouped = df.groupby(pd.Grouper(key='order_date', freq='M'))
+            grouped = df.groupby(pd.Grouper(key='order_date', freq='ME'))
         else:
             raise ValueError(f"Unsupported time period: {time_period}")
         
@@ -355,7 +355,7 @@ class DataAnalyzer:
             date_format = '%Y-%m-%d'
         elif period == 'M':
             start_date = end_date - pd.DateOffset(months=periods)
-            freq = 'M'
+            freq = 'ME'
             date_format = '%Y-%m'
         else:
             raise ValueError(f"Unsupported period: {period}")
