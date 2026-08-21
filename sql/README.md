@@ -1,46 +1,36 @@
 # SQL Scripts for E-commerce Data Pipeline
 
-This directory contains SQL scripts for database setup, queries, and data extraction for the e-commerce data pipeline.
+This directory contains the warehouse star schema for the e-commerce data pipeline.
 
 ## Scripts
 
-1. **create_tables.sql** - Creates the database schema with all necessary tables
+1. **star_schema.postgres.sql** - The schema actually loaded by `src/load/warehouse_loader.py` (via `python -m src.main --load`). Runs against local Postgres.
+2. **star_schema.azuresql.sql** - T-SQL equivalent, documenting the Azure SQL cloud target. Not executed anywhere in this project (the project's Azure subscription is disabled/read-only).
 
 ## Database Schema
 
-The database schema includes the following main tables:
+Star schema, grain of `fact_sales` = one row per order line item:
 
-- `customers` - Customer information
-- `products` - Product catalog
-- `orders` - Order header information
-- `order_items` - Order line items
-- `product_categories` - Product category hierarchy
-- `inventory` - Product inventory information
-- `customer_reviews` - Product reviews from customers
-- `promotions` - Marketing promotions
+- `dim_customer` - Customer dimension
+- `dim_product` - Product dimension
+- `dim_date` - Date dimension (one row per order date)
+- `fact_sales` - Order line item facts, FK'd to the three dimensions above
 
 ## Usage
 
-To set up the database:
+Start local Postgres (see `docker-compose.yml` in the repo root), then apply the schema:
 
-1. Connect to your database server:
 ```bash
-# For MySQL/MariaDB
-mysql -u username -p
-
-# For PostgreSQL
-psql -U username -d database
+docker compose up -d
+psql "$DATABASE_URL" -f sql/star_schema.postgres.sql
 ```
 
-2. Run the create_tables.sql script:
-```sql
--- In MySQL/MariaDB
-SOURCE /path/to/create_tables.sql;
+Load the star schema from the transformed CSVs:
 
--- In PostgreSQL
-\i /path/to/create_tables.sql
+```bash
+python -m src.main --load
 ```
 
 ## Database Connection
 
-The data pipeline connects to the database using the configuration in `src/config.py`. Make sure to update the connection parameters to match your database setup. 
+The data pipeline connects to the database via `DATABASE_URL` (see `.env.example` in the repo root and `src/config.py`). 

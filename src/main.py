@@ -229,8 +229,10 @@ def create_dummy_data():
         })
     products_df = pd.DataFrame(products)
     
-    # Create orders data
-    orders = []
+    # Create order headers (financial fields are derived from line items below,
+    # so orders reconcile exactly with order_items instead of being invented
+    # independently)
+    order_headers = []
     order_statuses = ['Completed', 'Shipped', 'Processing', 'Cancelled']
     payment_methods = ['Credit Card', 'PayPal', 'Bank Transfer']
     shipping_methods = ['Standard', 'Express', 'Next Day']
@@ -241,29 +243,24 @@ def create_dummy_data():
         num_orders = (date.day % 5) + 1
         for _ in range(num_orders):
             customer_id = f'CUST{(order_id % 100) + 1:05d}'
-            order_total = 50 + (order_id % 10) * 25
             shipping_cost = 5 + (order_id % 3) * 5
-            tax = order_total * 0.1
             
-            orders.append({
+            order_headers.append({
                 'order_id': f'ORD{order_id:06d}',
                 'customer_id': customer_id,
                 'order_date': date.strftime('%Y-%m-%d'),
                 'order_status': order_statuses[order_id % 4],
-                'order_total': order_total,
                 'shipping_cost': shipping_cost,
-                'tax': tax,
                 'payment_method': payment_methods[order_id % 3],
                 'shipping_method': shipping_methods[order_id % 3]
             })
             order_id += 1
-    orders_df = pd.DataFrame(orders)
     
-    # Create order items data
+    # Create order items data first, since each order's totals are derived from them
     order_items = []
     item_id = 1
-    for order in orders:
-        order_id = order['order_id']
+    for header in order_headers:
+        order_id = header['order_id']
         # Generate 1-3 items per order
         num_items = (int(order_id[-2:]) % 3) + 1
         for i in range(num_items):
@@ -283,6 +280,31 @@ def create_dummy_data():
             item_id += 1
     order_items_df = pd.DataFrame(order_items)
     
+    # Derive each order's subtotal from its own line items, then compute
+    # order_total = subtotal + shipping_cost + tax so orders and order_items
+    # reconcile exactly
+    subtotal_by_order = {}
+    for item in order_items:
+        subtotal_by_order[item['order_id']] = subtotal_by_order.get(item['order_id'], 0) + item['quantity'] * item['price']
+    
+    orders = []
+    for header in order_headers:
+        order_subtotal = subtotal_by_order[header['order_id']]
+        tax = order_subtotal * 0.1
+        order_total = order_subtotal + header['shipping_cost'] + tax
+        orders.append({
+            'order_id': header['order_id'],
+            'customer_id': header['customer_id'],
+            'order_date': header['order_date'],
+            'order_status': header['order_status'],
+            'order_total': order_total,
+            'shipping_cost': header['shipping_cost'],
+            'tax': tax,
+            'payment_method': header['payment_method'],
+            'shipping_method': header['shipping_method']
+        })
+    orders_df = pd.DataFrame(orders)
+    
     # Save dummy data to CSV files
     customers_df.to_csv(os.path.join(PATHS['raw_data'], 'customers.csv'), index=False)
     products_df.to_csv(os.path.join(PATHS['raw_data'], 'products.csv'), index=False)
@@ -298,10 +320,24 @@ def main():
                         help='Source of data (sample, database, api)')
     parser.add_argument('--start-date', help='Start date for data extraction (YYYY-MM-DD)')
     parser.add_argument('--end-date', help='End date for data extraction (YYYY-MM-DD)')
-    
+    parser.add_argument('--load', action='store_true',
+                        help='Load the transformed data into the warehouse (star schema). Runs after the pipeline unless --load-only is given')
+    parser.add_argument('--load-only', action='store_true',
+                        help='Load already-transformed data into the warehouse without re-running the pipeline')
+
     args = parser.parse_args()
-    
-    run_pipeline(data_source=args.source, start_date=args.start_date, end_date=args.end_date)
+
+    if not args.load_only:
+        run_pipeline(data_source=args.source, start_date=args.start_date, end_date=args.end_date)
+
+    if args.load or args.load_only:
+        from src.load.warehouse_loader import run_warehouse_load, ValidationError
+        try:
+            run_warehouse_load()
+        except ValidationError as exc:
+            logger.error(f"Warehouse load validation failed: {exc}")
+            print(f"Warehouse load validation failed: {exc}", file=sys.stderr)
+            sys.exit(1)
 
 if __name__ == '__main__':
     main() 

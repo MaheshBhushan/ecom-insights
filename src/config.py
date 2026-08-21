@@ -7,22 +7,12 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Database configurations
+# Database configuration
 DATABASE = {
-    'postgres': {
-        'host': os.getenv('PG_HOST', 'localhost'),
-        'port': os.getenv('PG_PORT', '5432'),
-        'database': os.getenv('PG_DATABASE', 'ecommerce'),
-        'user': os.getenv('PG_USER', 'postgres'),
-        'password': os.getenv('PG_PASSWORD', ''),
-    },
-    'mysql': {
-        'host': os.getenv('MYSQL_HOST', 'localhost'),
-        'port': os.getenv('MYSQL_PORT', '3306'),
-        'database': os.getenv('MYSQL_DATABASE', 'ecommerce'),
-        'user': os.getenv('MYSQL_USER', 'root'),
-        'password': os.getenv('MYSQL_PASSWORD', ''),
-    }
+    # Warehouse connection string. Defaults to the local Postgres container
+    # documented in docker-compose.yml. Point this at Azure SQL
+    # (mssql+pyodbc://...) to switch warehouses -- see .env.example.
+    'url': os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5433/ecommerce'),
 }
 
 # API configurations
