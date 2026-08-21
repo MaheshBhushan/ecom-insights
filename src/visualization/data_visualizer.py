@@ -10,7 +10,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import logging
-from datetime import datetime
 from src.config import PATHS
 from src.utils import ensure_dir, logger
 
@@ -48,9 +47,8 @@ class DataVisualizer:
             format (str): File format ('png', 'pdf', 'svg', 'jpg')
             dpi (int): Resolution for raster formats
         """
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        file_path = os.path.join(self.save_path, f"{filename}_{timestamp}.{format}")
-        
+        file_path = os.path.join(self.save_path, f"{filename}.{format}")
+
         fig.savefig(file_path, format=format, dpi=dpi, bbox_inches='tight')
         plt.close(fig)
         
@@ -66,20 +64,21 @@ class DataVisualizer:
             filename (str): Name of the file (without extension)
             format (str): File format ('html', 'png', 'jpg', 'pdf', 'svg')
         """
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        
         if format == 'html':
-            file_path = os.path.join(self.save_path, f"{filename}_{timestamp}.html")
+            file_path = os.path.join(self.save_path, f"{filename}.html")
             fig.write_html(file_path)
+            # Also write a static PNG so the chart renders in git/README without a browser
+            png_path = os.path.join(self.save_path, f"{filename}.png")
+            fig.write_image(png_path)
         else:
-            file_path = os.path.join(self.save_path, f"{filename}_{timestamp}.{format}")
+            file_path = os.path.join(self.save_path, f"{filename}.{format}")
             fig.write_image(file_path)
-        
+
         self.logger.info(f"Saved interactive visualization to {file_path}")
         return file_path
     
-    def plot_sales_trend(self, sales_data, time_column='period', value_column='total_revenue', 
-                         title='Sales Trend Over Time', interactive=True):
+    def plot_sales_trend(self, sales_data, time_column='period', value_column='total_revenue',
+                         title='Is revenue trending up or down over time?', interactive=True):
         """
         Plot sales trend over time.
         
@@ -156,8 +155,8 @@ class DataVisualizer:
         
         return fig, file_path
     
-    def plot_sales_comparison(self, sales_data, metrics=None, time_column='period', 
-                              title='Sales Metrics Comparison', interactive=True):
+    def plot_sales_comparison(self, sales_data, metrics=None, time_column='period',
+                              title='Do revenue, orders, and customers grow together?', interactive=True):
         """
         Plot multiple sales metrics for comparison.
         
@@ -175,7 +174,7 @@ class DataVisualizer:
         
         # Default metrics if not specified
         if metrics is None:
-            metrics = ['total_revenue', 'total_orders', 'unique_customers']
+            metrics = ['total_revenue', 'order_count', 'unique_customers']
         
         if interactive:
             # Create interactive plotly figure with subplots
@@ -264,7 +263,7 @@ class DataVisualizer:
         
         # Create title if not provided
         if title is None:
-            title = f"Top {top_n} Products by {metric.replace('_', ' ').title()}"
+            title = f"Which products drive the most {metric.replace('_', ' ')}?"
         
         # Get product names if available, otherwise use product IDs
         if 'product_name' in df.columns:
@@ -373,7 +372,7 @@ class DataVisualizer:
         
         # Create title if not provided
         if title is None:
-            title = f"Category Performance by {metric.replace('_', ' ').title()}"
+            title = f"Which categories generate the most {metric.replace('_', ' ')}?"
         
         if interactive:
             # Create interactive plotly figure
@@ -426,8 +425,8 @@ class DataVisualizer:
         
         return fig, file_path
     
-    def plot_customer_segments(self, customer_segments, segment_profiles, 
-                               title='Customer Segments Analysis', interactive=True):
+    def plot_customer_segments(self, customer_segments, segment_profiles,
+                               title='Which customer segments are the most valuable?', interactive=True):
         """
         Plot customer segments.
         
@@ -445,8 +444,12 @@ class DataVisualizer:
         if interactive:
             # Create interactive plotly figure with multiple subplots
             fig = make_subplots(
-                rows=2, 
+                rows=2,
                 cols=2,
+                specs=[
+                    [{'type': 'domain'}, {'type': 'xy'}],
+                    [{'type': 'xy'}, {'type': 'xy'}]
+                ],
                 subplot_titles=[
                     'Segment Distribution',
                     'Average Total Spend by Segment',
@@ -551,7 +554,7 @@ class DataVisualizer:
         return fig, file_path
     
     def plot_cohort_retention(self, retention_matrix, cohort_sizes=None,
-                              title='Customer Cohort Retention Analysis', interactive=True):
+                              title='How well do we retain customers after their first purchase?', interactive=True):
         """
         Plot cohort retention heatmap.
         
@@ -585,7 +588,7 @@ class DataVisualizer:
                     if not pd.isna(value):
                         fig.add_annotation(
                             x=period,
-                            y=cohort,
+                            y=str(cohort),
                             text=f"{value:.1f}%",
                             showarrow=False,
                             font=dict(color='white' if value > 50 else 'black')
@@ -595,7 +598,7 @@ class DataVisualizer:
             if cohort_sizes is not None:
                 cohort_labels = [f"{cohort} (n={size})" for cohort, size in 
                                 zip(cohort_sizes.index.astype(str), cohort_sizes['customer_id'])]
-                fig.update_layout(yaxis=dict(ticktext=cohort_labels, tickvals=retention_matrix.index))
+                fig.update_layout(yaxis=dict(ticktext=cohort_labels, tickvals=retention_matrix.index.astype(str)))
             
             # Customize layout
             fig.update_layout(
@@ -663,7 +666,7 @@ class DataVisualizer:
             sales_data, 
             time_column='period', 
             value_column='total_revenue',
-            title='Sales Revenue Trend Over Time',
+            title='Is revenue trending up or down over time?',
             interactive=True
         )
         figure_paths.append(path)
@@ -671,9 +674,9 @@ class DataVisualizer:
         # 2. Sales metrics comparison
         fig, path = self.plot_sales_comparison(
             sales_data,
-            metrics=['total_revenue', 'total_orders', 'unique_customers'],
+            metrics=['total_revenue', 'order_count', 'unique_customers'],
             time_column='period',
-            title='Sales Metrics Comparison',
+            title='Do revenue, orders, and customers grow together?',
             interactive=True
         )
         figure_paths.append(path)
@@ -683,7 +686,7 @@ class DataVisualizer:
             product_data,
             metric='total_revenue',
             top_n=10,
-            title='Top 10 Products by Revenue',
+            title='Which products drive the most revenue?',
             interactive=True
         )
         figure_paths.append(path)
@@ -692,7 +695,7 @@ class DataVisualizer:
         fig, path = self.plot_category_performance(
             category_data,
             metric='total_revenue',
-            title='Category Performance by Revenue',
+            title='Which categories generate the most revenue?',
             interactive=True
         )
         figure_paths.append(path)
@@ -718,7 +721,7 @@ class DataVisualizer:
             fig, path = self.plot_customer_segments(
                 customer_data,
                 segment_profiles,
-                title='Customer Segments Analysis',
+                title='Which customer segments are the most valuable?',
                 interactive=True
             )
             figure_paths.append(path)
