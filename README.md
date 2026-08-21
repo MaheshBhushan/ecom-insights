@@ -13,7 +13,6 @@ A robust Python-based data pipeline for analyzing e-commerce transactions. This 
   - `analysis/`: Scripts for data analysis and generating insights
   - `visualization/`: Scripts for creating visualizations
 - `sql/`: SQL scripts for database setup and queries
-- `notebooks/`: Jupyter notebooks for exploratory data analysis
 - `reports/`: Generated reports and visualizations
 - `requirements.txt`: Project dependencies
 
@@ -39,16 +38,13 @@ python src/main.py
 
 ## Features
 
-- Data extraction from multiple sources (CSV, SQL databases, APIs)
 - Comprehensive data cleaning and transformation
 - Advanced analytics for customer segmentation and product performance
-- Interactive visualizations for sales trends and customer behavior
-- Scheduled reports for key business metrics
+- Visualizations for sales trends and customer behavior
 
 ## Technologies Used
 
 - Python
 - Pandas & NumPy
 - SQL
-- Power BI
 - Matplotlib/Seaborn/Plotly 

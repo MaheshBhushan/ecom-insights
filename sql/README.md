@@ -5,10 +5,6 @@ This directory contains SQL scripts for database setup, queries, and data extrac
 ## Scripts
 
 1. **create_tables.sql** - Creates the database schema with all necessary tables
-2. **sample_data.sql** - Inserts sample data for testing and development
-3. **analysis_queries.sql** - Common SQL queries for data analysis
-4. **etl_procedures.sql** - Stored procedures for ETL operations
-5. **views.sql** - Database views for simplified data access
 
 ## Database Schema
 
@@ -43,15 +39,6 @@ SOURCE /path/to/create_tables.sql;
 
 -- In PostgreSQL
 \i /path/to/create_tables.sql
-```
-
-3. Optionally, load sample data:
-```sql
--- In MySQL/MariaDB
-SOURCE /path/to/sample_data.sql;
-
--- In PostgreSQL
-\i /path/to/sample_data.sql
 ```
 
 ## Database Connection
