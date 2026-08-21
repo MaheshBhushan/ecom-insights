@@ -1,0 +1,33 @@
+{
+  "average_order_value_net": 286.35,
+  "cancelled_order_count": 272,
+  "cancelled_order_share_pct": 24.98,
+  "gross_margin_basis": "net_revenue",
+  "gross_margin_pct": 35.09,
+  "gross_revenue_total": 253080.0,
+  "net_revenue_total": 233944.75,
+  "order_statuses_excluded_from_revenue": [
+    "Cancelled"
+  ],
+  "order_statuses_included_in_revenue": [
+    "Completed",
+    "Processing",
+    "Shipped"
+  ],
+  "period_end": "2026-06-30",
+  "period_start": "2025-06-30",
+  "repeat_customer_rate_pct": 100.0,
+  "revenue_basis_note": "gross_revenue_total is the pre-discount line total (sum of fact_sales.gross_revenue); net_revenue_total is gross_revenue minus discount_amount (sum of fact_sales.net_revenue). Both exclude Cancelled orders. gross_margin_pct uses the net_revenue basis: (net_revenue_total - total_cost) / net_revenue_total. The analysis layer (src/analysis) has no post-discount revenue definition of its own -- this margin is defined here, on net_revenue.",
+  "top_category": {
+    "category": "Sports",
+    "net_revenue": 64898.75
+  },
+  "total_cost": 151848.0,
+  "total_customers": 100,
+  "total_discount_amount": 19135.25,
+  "total_orders": 817,
+  "weakest_category": {
+    "category": "Electronics",
+    "net_revenue": 28220.5
+  }
+}
