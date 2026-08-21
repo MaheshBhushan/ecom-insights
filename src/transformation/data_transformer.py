@@ -318,28 +318,42 @@ class DataTransformer:
             on='order_id',
             how='left'
         )
-        
-        # Group by date and calculate metrics
-        daily_sales = sales_df.groupby(sales_df['order_date'].dt.date).agg({
+
+        # Cancelled orders never realized revenue -- exclude them, matching
+        # src/insights/kpis.py and fact_sales.
+        sales_df = sales_df[sales_df['order_status'] != 'Cancelled']
+
+        # discount_amount may not exist if transform_order_items_data was
+        # given items without a discount_rate column.
+        has_discount = 'discount_amount' in sales_df.columns
+        if has_discount:
+            sales_df['net_revenue'] = sales_df['item_total'] - sales_df['discount_amount']
+
+        # Group by date and calculate metrics. gross_revenue is item_total
+        # summed (pre-discount line total, same basis as fact_sales.gross_revenue).
+        agg_spec = {
             'order_id': 'nunique',
             'item_total': 'sum',
             'quantity': 'sum',
             'product_id': 'nunique',
             'customer_id': 'nunique'
-        }).reset_index()
-        
+        }
+        if has_discount:
+            agg_spec['net_revenue'] = 'sum'
+        daily_sales = sales_df.groupby(sales_df['order_date'].dt.date).agg(agg_spec).reset_index()
+
         # Rename columns
         daily_sales.columns = [
-            'date', 
-            'total_orders', 
-            'total_sales', 
+            'date',
+            'total_orders',
+            'gross_revenue',
             'total_items_sold',
             'unique_products_sold',
             'unique_customers'
-        ]
-        
-        # Calculate average order value
-        daily_sales['average_order_value'] = daily_sales['total_sales'] / daily_sales['total_orders']
+        ] + (['net_revenue'] if has_discount else [])
+
+        # Calculate average order value (gross basis)
+        daily_sales['average_order_value'] = daily_sales['gross_revenue'] / daily_sales['total_orders']
         
         # Calculate average items per order
         daily_sales['average_items_per_order'] = daily_sales['total_items_sold'] / daily_sales['total_orders']

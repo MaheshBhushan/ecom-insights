@@ -125,10 +125,20 @@ def run_pipeline(data_source='sample', start_date=None, end_date=None):
         monthly_metrics = analyzer.calculate_sales_metrics(orders_transformed, time_period='monthly')
         
         # Analyze product performance
-        product_performance = analyzer.analyze_product_performance(order_items_transformed, products_transformed)
+        # Product and category revenue must exclude Cancelled orders, like every
+        # other revenue metric. The item frame carries no order_status, so the
+        # filter is applied here by the order ids that survived.
+        live_order_ids = orders_transformed.loc[
+            orders_transformed['order_status'] != 'Cancelled', 'order_id'
+        ]
+        live_order_items = order_items_transformed[
+            order_items_transformed['order_id'].isin(live_order_ids)
+        ]
+
+        product_performance = analyzer.analyze_product_performance(live_order_items, products_transformed)
         
         # Analyze category performance
-        category_performance = analyzer.analyze_category_performance(order_items_transformed, products_transformed)
+        category_performance = analyzer.analyze_category_performance(live_order_items, products_transformed)
         
         # Analyze customer behavior
         customer_behavior = analyzer.analyze_customer_behavior(orders_transformed, customers_transformed)
