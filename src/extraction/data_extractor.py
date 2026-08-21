@@ -59,20 +59,19 @@ class DataExtractor:
             self.logger.error(f"Error extracting data from Excel file {file_path}: {str(e)}")
             raise
     
-    def extract_from_database(self, query, db_type='postgres'):
+    def extract_from_database(self, query):
         """
         Extract data from a database using a SQL query.
-        
+
         Args:
             query (str): SQL query to execute
-            db_type (str): Type of database ('postgres' or 'mysql')
-            
+
         Returns:
             pandas.DataFrame: Extracted data
         """
         try:
-            self.logger.info(f"Extracting data from {db_type} database with query: {query}")
-            engine = get_db_connection(db_type)
+            self.logger.info(f"Extracting data from database with query: {query}")
+            engine = get_db_connection()
             df = pd.read_sql(query, engine)
             self.logger.info(f"Successfully extracted {len(df)} rows from database")
             return df

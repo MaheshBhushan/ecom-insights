@@ -31,31 +31,22 @@ def setup_logging():
 logger = setup_logging()
 
 # Database connection functions
-def get_db_connection(db_type='postgres'):
+def get_db_connection():
     """
-    Create a database connection using SQLAlchemy.
-    
-    Args:
-        db_type (str): Type of database ('postgres' or 'mysql')
-        
+    Create a database connection using SQLAlchemy, built from the DATABASE_URL
+    env var (defaults to local Postgres). Point DATABASE_URL at Azure SQL
+    (mssql+pyodbc://...) to switch warehouses without touching this code.
+
     Returns:
         engine: SQLAlchemy engine object
     """
+    connection_string = DATABASE['url']
     try:
-        if db_type == 'postgres':
-            db_config = DATABASE['postgres']
-            connection_string = f"postgresql://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
-        elif db_type == 'mysql':
-            db_config = DATABASE['mysql']
-            connection_string = f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
-        else:
-            raise ValueError(f"Unsupported database type: {db_type}")
-        
         engine = create_engine(connection_string)
-        logger.info(f"Successfully connected to {db_type} database")
+        logger.info("Successfully created database engine")
         return engine
     except Exception as e:
-        logger.error(f"Error connecting to {db_type} database: {str(e)}")
+        logger.error(f"Error connecting to database: {str(e)}")
         raise
 
 # Data validation functions
