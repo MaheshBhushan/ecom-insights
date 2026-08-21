@@ -31,10 +31,14 @@ class DataAnalyzer:
         
         # Make a copy to avoid modifying the original
         df = sales_df.copy()
-        
+
+        # Cancelled orders never realized revenue -- exclude them from every
+        # revenue/order/customer count here, matching src/insights/kpis.py.
+        df = df[df['order_status'] != 'Cancelled']
+
         # Ensure order_date is datetime
         df['order_date'] = pd.to_datetime(df['order_date'])
-        
+
         # Group by time period
         if time_period == 'daily':
             grouped = df.groupby(df['order_date'].dt.date)
@@ -44,17 +48,26 @@ class DataAnalyzer:
             grouped = df.groupby(pd.Grouper(key='order_date', freq='ME'))
         else:
             raise ValueError(f"Unsupported time period: {time_period}")
-        
+
+        # Revenue basis: order_subtotal (order_total minus shipping_cost and
+        # tax) is the goods-sold amount, pre-discount -- it reconciles with
+        # fact_sales.gross_revenue summed per order. Fall back to order_total
+        # only if the transformation layer didn't compute a subtotal.
+        revenue_col = 'order_subtotal' if 'order_subtotal' in df.columns else 'order_total'
+
         # Calculate metrics
         metrics = grouped.agg({
             'order_id': 'nunique',
-            'order_total': 'sum',
+            revenue_col: 'sum',
             'customer_id': 'nunique'
         }).reset_index()
         
-        # Rename columns
+        # Rename columns. total_revenue is gross revenue (goods sold,
+        # pre-discount, excludes shipping/tax and Cancelled orders); kept as
+        # "total_revenue" for compatibility with existing consumers
+        # (src/main.py, src/visualization/data_visualizer.py).
         metrics.columns = ['period', 'total_orders', 'total_revenue', 'unique_customers']
-        
+
         # Calculate average order value
         metrics['average_order_value'] = metrics['total_revenue'] / metrics['total_orders']
         
@@ -180,22 +193,32 @@ class DataAnalyzer:
         
         # Make a copy to avoid modifying the original
         df = orders_df.copy()
-        
+
+        # Cancelled orders never realized spend -- exclude them so a
+        # customer's order_count/total_spend/segment reflect real purchases,
+        # matching src/insights/kpis.py.
+        df = df[df['order_status'] != 'Cancelled']
+
         # Ensure order_date is datetime
         df['order_date'] = pd.to_datetime(df['order_date'])
-        
+
+        # Revenue basis: order_subtotal excludes shipping/tax (see
+        # calculate_sales_metrics); fall back to order_total if absent.
+        revenue_col = 'order_subtotal' if 'order_subtotal' in df.columns else 'order_total'
+
         # Group by customer_id
         customer_metrics = df.groupby('customer_id').agg({
             'order_id': 'nunique',
-            'order_total': 'sum',
+            revenue_col: 'sum',
             'order_date': ['min', 'max']
         })
-        
-        # Flatten multi-level columns
+
+        # Flatten multi-level columns. total_spend is gross revenue
+        # (pre-discount, excludes shipping/tax and Cancelled orders).
         customer_metrics.columns = [
-            'order_count', 
-            'total_spend', 
-            'first_order_date', 
+            'order_count',
+            'total_spend',
+            'first_order_date',
             'last_order_date'
         ]
         
@@ -337,10 +360,14 @@ class DataAnalyzer:
         
         # Make a copy to avoid modifying the original
         df = sales_df.copy()
-        
+
+        # Cancelled orders never realized revenue -- exclude them, matching
+        # src/insights/kpis.py.
+        df = df[df['order_status'] != 'Cancelled']
+
         # Ensure order_date is datetime
         df['order_date'] = pd.to_datetime(df['order_date'])
-        
+
         # Set end date as the last day of the most recent period
         end_date = df['order_date'].max()
         
@@ -363,14 +390,21 @@ class DataAnalyzer:
         # Filter data for the specified time range
         filtered_df = df[(df['order_date'] >= start_date) & (df['order_date'] <= end_date)]
         
+        # Revenue basis: order_subtotal (order_total minus shipping_cost and
+        # tax) is the goods-sold amount, pre-discount -- see
+        # calculate_sales_metrics. Fall back to order_total if absent.
+        revenue_col = 'order_subtotal' if 'order_subtotal' in filtered_df.columns else 'order_total'
+
         # Resample data by the specified period
         resampled = filtered_df.set_index('order_date').resample(freq).agg({
             'order_id': 'nunique',
-            'order_total': 'sum',
+            revenue_col: 'sum',
             'customer_id': 'nunique'
         }).reset_index()
-        
-        # Rename columns
+
+        # Rename columns. total_revenue is gross revenue (goods sold,
+        # pre-discount, excludes shipping/tax and Cancelled orders); kept as
+        # "total_revenue" for compatibility with existing consumers.
         resampled.columns = ['period', 'order_count', 'total_revenue', 'unique_customers']
         
         # Format period for better readability
