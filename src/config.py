@@ -55,6 +55,9 @@ REPORTING = {
     'monthly_report_day': 1,
 }
 
+# Data generation anchor (deterministic sample data)
+DATA_ANCHOR_DATE = '2026-06-30'
+
 # Logging configuration
 LOGGING = {
     'level': os.getenv('LOG_LEVEL', 'INFO'),

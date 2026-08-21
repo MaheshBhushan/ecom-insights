@@ -162,19 +162,18 @@ def save_dataframe(df, filename, format='csv'):
         format (str): File format ('csv', 'parquet', 'excel', 'json')
     """
     ensure_dir(PATHS['processed_data'])
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
     if format == 'csv':
-        file_path = os.path.join(PATHS['processed_data'], f"{filename}_{timestamp}.csv")
+        file_path = os.path.join(PATHS['processed_data'], f"{filename}.csv")
         df.to_csv(file_path, index=False)
     elif format == 'parquet':
-        file_path = os.path.join(PATHS['processed_data'], f"{filename}_{timestamp}.parquet")
+        file_path = os.path.join(PATHS['processed_data'], f"{filename}.parquet")
         df.to_parquet(file_path, index=False)
     elif format == 'excel':
-        file_path = os.path.join(PATHS['processed_data'], f"{filename}_{timestamp}.xlsx")
+        file_path = os.path.join(PATHS['processed_data'], f"{filename}.xlsx")
         df.to_excel(file_path, index=False)
     elif format == 'json':
-        file_path = os.path.join(PATHS['processed_data'], f"{filename}_{timestamp}.json")
+        file_path = os.path.join(PATHS['processed_data'], f"{filename}.json")
         df.to_json(file_path, orient='records')
     else:
         raise ValueError(f"Unsupported file format: {format}")
