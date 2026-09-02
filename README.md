@@ -1,6 +1,6 @@
-# E-commerce Data Pipeline
+# Ecom Insights
 
-A single deterministic pipeline that turns raw order data into a loaded star-schema warehouse, 18 analysis CSVs, 7 charts, and a number-grounded executive briefing.
+A deterministic e-commerce analytics pipeline that turns raw order data into a loaded star-schema warehouse, 18 analysis CSVs, 7 charts, a number-grounded executive briefing, a formatted Excel workbook, and a PowerPoint management presentation.
 
 ![Do revenue, orders, and customers grow together?](reports/sales_metrics_comparison.png)
 
@@ -21,8 +21,8 @@ Each chart in `reports/` is titled with the question it answers:
 ## Quickstart
 
 ```bash
-git clone <this-repo>
-cd Data-Pipeline-for-E-Commerce-Analysis
+git clone https://github.com/MaheshBhushan/ecom-insights.git
+cd ecom-insights
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -55,6 +55,29 @@ python -m src.insights.briefing    # sends only kpis.json to claude-sonnet-5, wr
 
 Everything else in this project runs without an API key.
 
+Generate the management-ready Office outputs from the committed, validated
+pipeline artifacts:
+
+```bash
+python -m src.reporting.office_reports
+# or
+python -m src.main --office-report
+```
+
+This writes:
+
+- `reports/ecom_insights_analysis.xlsx` — a seven-sheet analysis workbook with
+  KPI summaries, formatted tables, native Excel charts, conditional formatting,
+  metric definitions, and source lineage.
+- `reports/ecom_insights_management_briefing.pptx` — a seven-slide management
+  briefing with KPI callouts, native PowerPoint charts, recommendations, and
+  source notes.
+
+Neither command requires Microsoft Excel or PowerPoint. The report generator
+uses `openpyxl` and `python-pptx` directly and does not call an LLM. When the
+validated `executive_briefing.json` is available, its grounded narrative is
+used; otherwise the deck and workbook use a deterministic fallback narrative.
+
 ## Architecture
 
 ```
@@ -78,6 +101,10 @@ data/raw/*.csv
       v
 [ insights ]  src/insights/kpis.py --> reports/kpis.json
               src/insights/briefing.py --> reports/executive_briefing.md (needs ANTHROPIC_API_KEY)
+      |
+      v
+[ reporting ] src/reporting/office_reports.py --> reports/ecom_insights_analysis.xlsx
+                                               --> reports/ecom_insights_management_briefing.pptx
 ```
 
 `python -m src.main --source sample --load` runs extract through load in one process. `--load-only` skips straight to the load step using the CSVs already in `data/processed/`. The insights step is separate and reads only the warehouse output, not the pipeline internals.
@@ -129,4 +156,5 @@ The briefing also demonstrates the check working as intended on real output: it 
 - **The 100% repeat-customer rate (`repeat_customer_rate_pct` in `reports/kpis.json`) is an artifact of that synthetic data**, not a real retention signal — the generator assigns customers to orders in a way that guarantees repeats across only 100 customers. The briefing itself calls this out as a data-quality issue rather than a finding to act on.
 - **The Azure SQL schema (`sql/star_schema.azuresql.sql`) has never been executed.** It documents the intended cloud target only; the project's Azure subscription is disabled.
 - **There is no BI tool.** No Power BI, no Tableau, no notebook, no scheduled report — only the committed PNGs in `reports/` and the CSVs in `data/processed/`.
+- **Office reporting is generated, not interactive BI.** The Excel workbook and PowerPoint deck are portable management deliverables, not live dashboards.
 - **Single-node, no orchestration.** The pipeline is one Python process run manually; there is no Airflow, cron, or equivalent scheduler.

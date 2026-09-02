@@ -334,10 +334,12 @@ def main():
                         help='Load the transformed data into the warehouse (star schema). Runs after the pipeline unless --load-only is given')
     parser.add_argument('--load-only', action='store_true',
                         help='Load already-transformed data into the warehouse without re-running the pipeline')
+    parser.add_argument('--office-report', action='store_true',
+                        help='Generate formatted Excel and PowerPoint reports from existing validated outputs')
 
     args = parser.parse_args()
 
-    if not args.load_only:
+    if not args.load_only and not args.office_report:
         run_pipeline(data_source=args.source, start_date=args.start_date, end_date=args.end_date)
 
     if args.load or args.load_only:
@@ -349,5 +351,11 @@ def main():
             print(f"Warehouse load validation failed: {exc}", file=sys.stderr)
             sys.exit(1)
 
+    if args.office_report:
+        from src.reporting.office_reports import generate_office_reports
+        xlsx_path, pptx_path = generate_office_reports()
+        logger.info(f"Generated Excel report: {xlsx_path}")
+        logger.info(f"Generated PowerPoint report: {pptx_path}")
+
 if __name__ == '__main__':
-    main() 
+    main()
