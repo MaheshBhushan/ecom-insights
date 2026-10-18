@@ -69,3 +69,8 @@ logs/*
 # Interactive plotly output: ~4.7 MB each (bundles plotly.js) and regenerated
 # on every run. The PNG equivalents are tracked instead.
 reports/*.html
+
+# Power BI local credentials, imported data caches, and recovery files
+powerbi/**/.pbi/
+powerbi/**/*.pbix
+powerbi/**/*.pbit
