@@ -278,8 +278,8 @@ def _parse_json_response(raw_text):
     return json.loads(text)  # a malformed response raises json.JSONDecodeError
 
 
-def generate_briefing(kpis, client=None):
-    """Call Claude with only kpis.json, parse, and validate the response."""
+def request_briefing(kpis, client=None, model=MODEL):
+    """Request a briefing and retain the provider's response and usage metadata."""
     if client is None:
         load_dotenv()
         api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -290,11 +290,16 @@ def generate_briefing(kpis, client=None):
             )
         client = anthropic.Anthropic(api_key=api_key)
 
-    response = client.messages.create(
-        model=MODEL,
+    return client.messages.create(
+        model=model,
         max_tokens=2000,
         messages=[{"role": "user", "content": _build_prompt(kpis)}],
     )
+
+
+def generate_briefing(kpis, client=None):
+    """Request, parse, and validate a briefing against the supplied KPIs."""
+    response = request_briefing(kpis, client=client)
     raw_text = "".join(block.text for block in response.content if block.type == "text")
     parsed = _parse_json_response(raw_text)
     validate_briefing(parsed, kpis)
