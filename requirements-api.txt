@@ -1,0 +1,6 @@
+# Runtime for serving existing artifacts; no warehouse or model call is needed.
+fastapi==0.148.0
+uvicorn==0.54.0
+httpx==0.28.1
+python-dotenv>=1.0.0
+anthropic>=1.0.0
