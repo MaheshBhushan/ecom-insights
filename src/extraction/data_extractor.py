@@ -3,6 +3,7 @@ Data extraction module for the E-commerce Data Pipeline.
 """
 import os
 import pandas as pd
+from sqlalchemy import text
 import requests
 import json
 import logging
@@ -59,12 +60,13 @@ class DataExtractor:
             self.logger.error(f"Error extracting data from Excel file {file_path}: {str(e)}")
             raise
     
-    def extract_from_database(self, query):
+    def extract_from_database(self, query, params=None):
         """
         Extract data from a database using a SQL query.
 
         Args:
-            query (str): SQL query to execute
+            query (str): SQL query to execute; use :name placeholders for values
+            params (dict): Bound parameters for the query placeholders
 
         Returns:
             pandas.DataFrame: Extracted data
@@ -72,7 +74,7 @@ class DataExtractor:
         try:
             self.logger.info(f"Extracting data from database with query: {query}")
             engine = get_db_connection()
-            df = pd.read_sql(query, engine)
+            df = pd.read_sql(text(query), engine, params=params)
             self.logger.info(f"Successfully extracted {len(df)} rows from database")
             return df
         except Exception as e:
@@ -170,8 +172,9 @@ class DataExtractor:
             return df[mask]
         
         elif source_type == 'database':
-            query = f"{source} WHERE {date_column} BETWEEN '{start_date}' AND '{end_date}'"
-            return self.extract_from_database(query, **kwargs)
+            query = f"{source} WHERE {date_column} BETWEEN :start_date AND :end_date"
+            params = {'start_date': start_date, 'end_date': end_date}
+            return self.extract_from_database(query, params=params, **kwargs)
         
         elif source_type == 'api':
             params = kwargs.pop('params', {})
