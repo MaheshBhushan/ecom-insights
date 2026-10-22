@@ -70,19 +70,20 @@ def run_pipeline(data_source='sample', start_date=None, end_date=None):
             
         elif data_source == 'database':
             # Extract data from database
-            orders_query = f"SELECT * FROM orders WHERE order_date BETWEEN '{start_date}' AND '{end_date}'"
+            date_params = {'start_date': start_date, 'end_date': end_date}
+            orders_query = "SELECT * FROM orders WHERE order_date BETWEEN :start_date AND :end_date"
             customers_query = "SELECT * FROM customers"
             products_query = "SELECT * FROM products"
             order_items_query = """
                 SELECT oi.* FROM order_items oi
                 JOIN orders o ON oi.order_id = o.order_id
-                WHERE o.order_date BETWEEN '{start_date}' AND '{end_date}'
+                WHERE o.order_date BETWEEN :start_date AND :end_date
             """
             
-            orders_df = extractor.extract_from_database(orders_query)
+            orders_df = extractor.extract_from_database(orders_query, date_params)
             customers_df = extractor.extract_from_database(customers_query)
             products_df = extractor.extract_from_database(products_query)
-            order_items_df = extractor.extract_from_database(order_items_query)
+            order_items_df = extractor.extract_from_database(order_items_query, date_params)
             
         elif data_source == 'api':
             # Extract data from API
