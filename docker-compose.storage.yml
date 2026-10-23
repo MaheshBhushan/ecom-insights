@@ -1,0 +1,29 @@
+# Report archive: MinIO for versioned report objects, OpenSearch for their metadata.
+# Set MINIO_ACCESS_KEY and MINIO_SECRET_KEY in .env before starting.
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?set MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?set MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ecommerce_minio:/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.3
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ecommerce_opensearch:/usr/share/opensearch/data
+
+volumes:
+  ecommerce_minio:
+  ecommerce_opensearch:

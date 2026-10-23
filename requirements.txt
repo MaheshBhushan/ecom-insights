@@ -17,3 +17,5 @@ tqdm>=4.66.0
 anthropic>=1.0.0
 pytest>=8.0.0
 jsonschema>=4.23.0  # validate the Power BI project against Microsoft's schemas
+minio>=7.2.0
+opensearch-py>=2.6.0
