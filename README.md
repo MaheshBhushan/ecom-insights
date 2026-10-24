@@ -274,3 +274,14 @@ python -m src.storage.report_archive
 - **Single-node processing.** The pipeline runs manually in one Python process.
   The optional n8n workflows schedule delivery of the existing validated report;
   they do not refresh the warehouse or generate new reports.
+
+## Chunked raw import and resource profiling
+
+`src/load/chunked_import.py` streams each raw CSV in `data/raw/` into PostgreSQL staging tables (`sql/staging.postgres.sql`) in fixed-size pandas batches. Each batch is checked against an explicit column schema: types, required fields, value ranges, allowed statuses, and primary-key duplicates across batch boundaries. Rows that fail land in `data/quarantine/<source>_quarantine.csv` with a `quarantine_reason` column and never reach the database.
+
+```bash
+psql "$DATABASE_URL" -f sql/staging.postgres.sql
+python -m src.load.chunked_import --batch-sizes 100 500 2000
+```
+
+The command runs the full import once per batch size and writes `reports/import_profile.json` with read, validate, and load seconds, peak Python heap memory (tracemalloc), and loaded and quarantined row counts per source. `tests/test_chunked_import.py` covers quarantine reasons, identical results across batch sizes, and a COPY of the validated rows into a network-isolated PostgreSQL 16 container.
