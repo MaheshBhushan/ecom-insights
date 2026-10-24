@@ -1,0 +1,16 @@
+body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-top: 1rem; overflow-x: auto; }
+.filters { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; }
+.filters label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.25rem; }
+.filters select { min-width: 9rem; height: 5rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.kpis div { display: flex; flex-direction: column; }
+.kpis strong { font-size: 1.6rem; }
+.bars { display: flex; gap: 0.5rem; height: 200px; align-items: stretch; }
+.bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; text-align: center; }
+.bar span { background: #2563eb; border-radius: 4px 4px 0 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+th, td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+.cohorts td { text-align: center; }
+.error { color: #b91c1c; }

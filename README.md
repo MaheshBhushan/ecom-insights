@@ -285,3 +285,15 @@ python -m src.load.chunked_import --batch-sizes 100 500 2000
 ```
 
 The command runs the full import once per batch size and writes `reports/import_profile.json` with read, validate, and load seconds, peak Python heap memory (tracemalloc), and loaded and quarantined row counts per source. `tests/test_chunked_import.py` covers quarantine reasons, identical results across batch sizes, and a COPY of the validated rows into a network-isolated PostgreSQL 16 container.
+
+## React KPI dashboard
+
+`dashboard/` is a TypeScript/React app that filters revenue, cohort retention, and orders by date range, category, country, and order status. It reads the PostgreSQL star schema through read-only FastAPI endpoints in `src/dashboard_api.py`. Filters travel as bound query parameters, so users never write SQL.
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/ecommerce \
+  uvicorn src.dashboard_api:create_app --factory --port 8001
+npm -C dashboard install && npm -C dashboard run dev   # http://localhost:5173
+```
+
+Endpoints: `/api/dashboard/{options,summary,revenue,cohorts,orders}`. Tests load the committed star-schema CSVs into SQLite: `pytest tests/test_dashboard_api.py` and `npm -C dashboard test`.
