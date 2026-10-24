@@ -16,7 +16,6 @@ import anthropic
 from dotenv import load_dotenv
 
 from src.config import PATHS
-from src.insights.kpis import write_kpis
 
 MODEL = "claude-sonnet-5"
 
@@ -342,6 +341,9 @@ def _render_markdown(briefing, kpis):
 # --------------------------------------------------------------------------
 
 def main():
+    # Serving an already-validated report does not need warehouse dependencies.
+    from src.insights.kpis import write_kpis
+
     kpis = write_kpis()
 
     try:

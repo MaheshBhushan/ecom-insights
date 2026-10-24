@@ -55,6 +55,12 @@ python -m src.insights.briefing    # sends only kpis.json to claude-sonnet-5, wr
 
 Everything else in this project runs without an API key.
 
+The optional [scheduled briefing delivery stack](n8n/README.md) exposes the
+validated report through FastAPI and delivers it to configured sales and
+marketing HTTP receivers. It includes two importable self-hosted n8n workflows,
+retry-safe request keys, and a persistent failed-delivery ledger. It uses
+`docker-compose.briefings.yml` and does not require a model API key.
+
 Generate the management-ready Office outputs from the committed, validated
 pipeline artifacts:
 
@@ -249,4 +255,6 @@ The briefing also demonstrates the check working as intended on real output: it 
 - **The Azure SQL schema (`sql/star_schema.azuresql.sql`) has never been executed.** It documents the intended cloud target only; the project's Azure subscription is disabled.
 - **Power BI uses a full-warehouse import snapshot.** The source-controlled project requires a Desktop refresh against PostgreSQL. Its charts do not filter the KPI cards. Desktop rendering and service publishing have not been exercised on this Linux host.
 - **Office reporting is generated, not interactive BI.** The Excel workbook and PowerPoint deck are portable management deliverables, not live dashboards.
-- **Single-node, no orchestration.** The pipeline is one Python process run manually; there is no Airflow, cron, or equivalent scheduler.
+- **Single-node processing.** The pipeline runs manually in one Python process.
+  The optional n8n workflows schedule delivery of the existing validated report;
+  they do not refresh the warehouse or generate new reports.

@@ -1,0 +1,118 @@
+{
+  "name": "Ecom Insights - Marketing briefing",
+  "active": false,
+  "nodes": [
+    {
+      "id": "schedule",
+      "name": "Daily schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "request-key",
+      "name": "Delivery identity",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "key",
+              "name": "delivery_key",
+              "type": "string",
+              "value": "={{ 'ecom-marketing-' + $now.setZone('Europe/Berlin').toISODate() }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "deliver",
+      "name": "Deliver validated briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "stopWorkflow",
+      "parameters": {
+        "method": "POST",
+        "url": "http://briefing-api:8000/deliveries/marketing",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.delivery_key }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_BRIEFING_API_HEADER_AUTH",
+          "name": "Briefing API bearer token"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily schedule": {
+      "main": [
+        [
+          {
+            "node": "Delivery identity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery identity": {
+      "main": [
+        [
+          {
+            "node": "Deliver validated briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  },
+  "pinData": {}
+}
