@@ -1,6 +1,6 @@
 # Ecom Insights
 
-A deterministic e-commerce analytics pipeline that turns raw order data into a loaded star-schema warehouse, 18 analysis CSVs, 7 charts, a number-grounded executive briefing, a formatted Excel workbook, and a PowerPoint management presentation.
+A deterministic e-commerce analytics pipeline that turns raw order data into a loaded star-schema warehouse, 18 analysis CSVs, 7 charts, a number-grounded executive briefing, a formatted Excel workbook, a PowerPoint management presentation, and a Power BI warehouse report.
 
 ![Do revenue, orders, and customers grow together?](reports/sales_metrics_comparison.png)
 
@@ -77,6 +77,12 @@ Neither command requires Microsoft Excel or PowerPoint. The report generator
 uses `openpyxl` and `python-pptx` directly and does not call an LLM. When the
 validated `executive_briefing.json` is available, its grounded narrative is
 used; otherwise the deck and workbook use a deterministic fallback narrative.
+
+Open [`powerbi/EcomInsights.pbip`](powerbi/EcomInsights.pbip) in Power BI Desktop
+for the PostgreSQL report. It includes KPI cards, monthly and category net
+revenue charts, and a KPI audit page. The SQL imports reconcile with the
+existing KPI computation and committed baseline. See the
+[connection, refresh, and test instructions](powerbi/README.md).
 
 ## Architecture
 
@@ -155,6 +161,6 @@ The briefing also demonstrates the check working as intended on real output: it 
 - **The data is synthetic.** `src/main.py::create_dummy_data()` generates it deterministically from `config.DATA_ANCHOR_DATE`; it is not real transaction data.
 - **The 100% repeat-customer rate (`repeat_customer_rate_pct` in `reports/kpis.json`) is an artifact of that synthetic data**, not a real retention signal — the generator assigns customers to orders in a way that guarantees repeats across only 100 customers. The briefing itself calls this out as a data-quality issue rather than a finding to act on.
 - **The Azure SQL schema (`sql/star_schema.azuresql.sql`) has never been executed.** It documents the intended cloud target only; the project's Azure subscription is disabled.
-- **There is no BI tool.** No Power BI, no Tableau, no notebook, no scheduled report — only the committed PNGs in `reports/` and the CSVs in `data/processed/`.
+- **Power BI uses a full-warehouse import snapshot.** The source-controlled project requires a Desktop refresh against PostgreSQL. Its charts do not filter the KPI cards. Desktop rendering and service publishing have not been exercised on this Linux host.
 - **Office reporting is generated, not interactive BI.** The Excel workbook and PowerPoint deck are portable management deliverables, not live dashboards.
 - **Single-node, no orchestration.** The pipeline is one Python process run manually; there is no Airflow, cron, or equivalent scheduler.

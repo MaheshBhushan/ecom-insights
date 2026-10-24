@@ -1,0 +1,387 @@
+{
+  "name": "EcomInsights",
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "expressions": [
+      {
+        "name": "WarehouseServer",
+        "kind": "m",
+        "expression": "\"localhost:5433\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      },
+      {
+        "name": "WarehouseDatabase",
+        "kind": "m",
+        "expression": "\"ecommerce\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      }
+    ],
+    "tables": [
+      {
+        "name": "KPIs",
+        "columns": [
+          {
+            "name": "net_revenue_total",
+            "dataType": "decimal",
+            "sourceColumn": "net_revenue_total",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "total_orders",
+            "dataType": "int64",
+            "sourceColumn": "total_orders",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "average_order_value_net",
+            "dataType": "decimal",
+            "sourceColumn": "average_order_value_net",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "gross_margin_pct",
+            "dataType": "decimal",
+            "sourceColumn": "gross_margin_pct",
+            "summarizeBy": "none",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "cancelled_order_share_pct",
+            "dataType": "decimal",
+            "sourceColumn": "cancelled_order_share_pct",
+            "summarizeBy": "none",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "repeat_customer_rate_pct",
+            "dataType": "decimal",
+            "sourceColumn": "repeat_customer_rate_pct",
+            "summarizeBy": "none",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "gross_revenue_total",
+            "dataType": "decimal",
+            "sourceColumn": "gross_revenue_total",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "total_discount_amount",
+            "dataType": "decimal",
+            "sourceColumn": "total_discount_amount",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "total_cost",
+            "dataType": "decimal",
+            "sourceColumn": "total_cost",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "total_customers",
+            "dataType": "int64",
+            "sourceColumn": "total_customers",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "cancelled_order_count",
+            "dataType": "int64",
+            "sourceColumn": "cancelled_order_count",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          },
+          {
+            "name": "top_category",
+            "dataType": "string",
+            "sourceColumn": "top_category",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "top_category_net_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "top_category_net_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "weakest_category",
+            "dataType": "string",
+            "sourceColumn": "weakest_category",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "weakest_category_net_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "weakest_category_net_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "period_start",
+            "dataType": "dateTime",
+            "sourceColumn": "period_start",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "period_end",
+            "dataType": "dateTime",
+            "sourceColumn": "period_end",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "included_statuses",
+            "dataType": "string",
+            "sourceColumn": "included_statuses",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "excluded_statuses",
+            "dataType": "string",
+            "sourceColumn": "excluded_statuses",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "gross_margin_basis",
+            "dataType": "string",
+            "sourceColumn": "gross_margin_basis",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "KPIs",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Sql = \"-- Full-warehouse snapshot. NULL statuses remain included, as in compute_kpis().#(lf)WITH sales AS (#(lf)    SELECT f.*, p.category#(lf)    FROM public.fact_sales f#(lf)    JOIN public.dim_product p ON p.product_id = f.product_id#(lf)), revenue AS (#(lf)    SELECT * FROM sales WHERE order_status IS DISTINCT FROM 'Cancelled'#(lf)), totals AS (#(lf)    SELECT count(DISTINCT order_id) AS total_orders,#(lf)           round(coalesce(sum(gross_revenue), 0), 2) AS gross_revenue_total,#(lf)           round(coalesce(sum(net_revenue), 0), 2) AS net_revenue_total,#(lf)           round(coalesce(sum(discount_amount), 0), 2) AS total_discount_amount,#(lf)           round(coalesce(sum(cost), 0), 2) AS total_cost#(lf)    FROM revenue#(lf)), customer_orders AS (#(lf)    SELECT customer_id, count(DISTINCT order_id) AS orders#(lf)    FROM revenue WHERE customer_id IS NOT NULL GROUP BY customer_id#(lf)), categories AS (#(lf)    SELECT category, round(sum(net_revenue), 2) AS net_revenue#(lf)    FROM revenue WHERE category IS NOT NULL GROUP BY category#(lf))#(lf)SELECT t.*,#(lf)       (SELECT count(DISTINCT customer_id) FROM sales) AS total_customers,#(lf)       (SELECT min(date_key) FROM sales) AS period_start,#(lf)       (SELECT max(date_key) FROM sales) AS period_end,#(lf)       round(net_revenue_total / nullif(total_orders, 0), 2) AS average_order_value_net,#(lf)       round((net_revenue_total - total_cost) * 100 / nullif(net_revenue_total, 0), 2) AS gross_margin_pct,#(lf)       (SELECT round(count(*) FILTER (WHERE orders > 1) * 100.0 / nullif(count(*), 0), 2)#(lf)        FROM customer_orders) AS repeat_customer_rate_pct,#(lf)       (SELECT count(DISTINCT order_id) FROM sales WHERE order_status = 'Cancelled') AS cancelled_order_count,#(lf)       (SELECT round(count(DISTINCT order_id) FILTER (WHERE order_status = 'Cancelled') * 100.0#(lf)                     / nullif(count(DISTINCT order_id), 0), 2) FROM sales) AS cancelled_order_share_pct,#(lf)       (SELECT category FROM categories ORDER BY net_revenue DESC, category LIMIT 1) AS top_category,#(lf)       (SELECT net_revenue FROM categories ORDER BY net_revenue DESC, category LIMIT 1) AS top_category_net_revenue,#(lf)       (SELECT category FROM categories ORDER BY net_revenue, category DESC LIMIT 1) AS weakest_category,#(lf)       (SELECT net_revenue FROM categories ORDER BY net_revenue, category DESC LIMIT 1) AS weakest_category_net_revenue,#(lf)       (SELECT string_agg(DISTINCT order_status, ', ' ORDER BY order_status) FROM revenue) AS included_statuses,#(lf)       'Cancelled'::text AS excluded_statuses,#(lf)       'net_revenue'::text AS gross_margin_basis#(lf)FROM totals t\",",
+                "    Source = PostgreSQL.Database(WarehouseServer, WarehouseDatabase,",
+                "        [Query = Sql, CreateNavigationProperties = false])",
+                "in Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Net revenue",
+            "expression": "SELECTEDVALUE(KPIs[net_revenue_total])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Revenue orders",
+            "expression": "SELECTEDVALUE(KPIs[total_orders])",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Net AOV",
+            "expression": "SELECTEDVALUE(KPIs[average_order_value_net])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Gross margin on net revenue",
+            "expression": "SELECTEDVALUE(KPIs[gross_margin_pct])",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "Cancelled order share",
+            "expression": "SELECTEDVALUE(KPIs[cancelled_order_share_pct])",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "Repeat customer rate",
+            "expression": "SELECTEDVALUE(KPIs[repeat_customer_rate_pct])",
+            "formatString": "0.00\"%\""
+          },
+          {
+            "name": "Gross revenue",
+            "expression": "SELECTEDVALUE(KPIs[gross_revenue_total])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Discounts",
+            "expression": "SELECTEDVALUE(KPIs[total_discount_amount])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Cost",
+            "expression": "SELECTEDVALUE(KPIs[total_cost])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Customers (all statuses)",
+            "expression": "SELECTEDVALUE(KPIs[total_customers])",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Cancelled orders",
+            "expression": "SELECTEDVALUE(KPIs[cancelled_order_count])",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Top category",
+            "expression": "SELECTEDVALUE(KPIs[top_category])"
+          },
+          {
+            "name": "Top category net revenue",
+            "expression": "SELECTEDVALUE(KPIs[top_category_net_revenue])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Weakest category",
+            "expression": "SELECTEDVALUE(KPIs[weakest_category])"
+          },
+          {
+            "name": "Weakest category net revenue",
+            "expression": "SELECTEDVALUE(KPIs[weakest_category_net_revenue])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "Period start",
+            "expression": "SELECTEDVALUE(KPIs[period_start])",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Period end",
+            "expression": "SELECTEDVALUE(KPIs[period_end])",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Revenue statuses",
+            "expression": "SELECTEDVALUE(KPIs[included_statuses])"
+          },
+          {
+            "name": "Excluded revenue statuses",
+            "expression": "SELECTEDVALUE(KPIs[excluded_statuses])"
+          },
+          {
+            "name": "Margin basis",
+            "expression": "SELECTEDVALUE(KPIs[gross_margin_basis])"
+          }
+        ]
+      },
+      {
+        "name": "Categories",
+        "columns": [
+          {
+            "name": "category",
+            "dataType": "string",
+            "sourceColumn": "category",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "net_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "net_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "gross_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "gross_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "orders",
+            "dataType": "int64",
+            "sourceColumn": "orders",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Categories",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Sql = \"SELECT p.category,#(lf)       round(sum(f.net_revenue), 2) AS net_revenue,#(lf)       round(sum(f.gross_revenue), 2) AS gross_revenue,#(lf)       count(DISTINCT f.order_id) AS orders#(lf)FROM public.fact_sales f#(lf)JOIN public.dim_product p ON p.product_id = f.product_id#(lf)WHERE f.order_status IS DISTINCT FROM 'Cancelled' AND p.category IS NOT NULL#(lf)GROUP BY p.category\",",
+                "    Source = PostgreSQL.Database(WarehouseServer, WarehouseDatabase,",
+                "        [Query = Sql, CreateNavigationProperties = false])",
+                "in Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Net revenue",
+            "expression": "SUM(Categories[net_revenue])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          }
+        ]
+      },
+      {
+        "name": "Monthly",
+        "columns": [
+          {
+            "name": "month",
+            "dataType": "dateTime",
+            "sourceColumn": "month",
+            "summarizeBy": "none",
+            "formatString": "yyyy-MM"
+          },
+          {
+            "name": "net_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "net_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "gross_revenue",
+            "dataType": "decimal",
+            "sourceColumn": "gross_revenue",
+            "summarizeBy": "none",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          },
+          {
+            "name": "orders",
+            "dataType": "int64",
+            "sourceColumn": "orders",
+            "summarizeBy": "none",
+            "formatString": "#,0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Monthly",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Sql = \"SELECT date_trunc('month', d.date_key)::date AS month,#(lf)       round(sum(f.net_revenue), 2) AS net_revenue,#(lf)       round(sum(f.gross_revenue), 2) AS gross_revenue,#(lf)       count(DISTINCT f.order_id) AS orders#(lf)FROM public.fact_sales f#(lf)JOIN public.dim_date d ON d.date_key = f.date_key#(lf)WHERE f.order_status IS DISTINCT FROM 'Cancelled'#(lf)GROUP BY date_trunc('month', d.date_key)::date\",",
+                "    Source = PostgreSQL.Database(WarehouseServer, WarehouseDatabase,",
+                "        [Query = Sql, CreateNavigationProperties = false])",
+                "in Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Net revenue",
+            "expression": "SUM(Monthly[net_revenue])",
+            "formatString": "$#,0.00;($#,0.00);$0.00"
+          }
+        ]
+      }
+    ]
+  }
+}

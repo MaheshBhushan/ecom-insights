@@ -1,0 +1,370 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "Overview",
+  "displayName": "Revenue and customers",
+  "displayOption": "FitToPage",
+  "width": 1300,
+  "height": 730,
+  "visualInteractions": [
+    {
+      "source": "KPI0",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI0",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI1",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI2",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI3",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI4",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "KPI5",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "MonthlyRevenue",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "CategoryRevenue",
+      "target": "Scope",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI0",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI4",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "KPI5",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "MonthlyRevenue",
+      "type": "NoFilter"
+    },
+    {
+      "source": "Scope",
+      "target": "CategoryRevenue",
+      "type": "NoFilter"
+    }
+  ]
+}
