@@ -70,6 +70,9 @@ logs/*
 # on every run. The PNG equivalents are tracked instead.
 reports/*.html
 
+# Local briefing experiments retain candidate output, usage, and human reviews.
+reports/briefing-comparisons/
+
 # Power BI local credentials, imported data caches, and recovery files
 powerbi/**/.pbi/
 powerbi/**/*.pbix
