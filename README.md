@@ -90,6 +90,11 @@ revenue charts, and a KPI audit page. The SQL imports reconcile with the
 existing KPI computation and committed baseline. See the
 [connection, refresh, and test instructions](powerbi/README.md).
 
+Open [`tableau/EcomInsights.twb`](tableau/EcomInsights.twb) in Tableau Desktop
+for the warehouse validation dashboard. It shows monthly revenue, customer
+cohorts, and missing data. Its totals reconcile with the Power BI KPI query.
+See the [lineage and reconciliation notes](tableau/README.md).
+
 ## Architecture
 
 ```
