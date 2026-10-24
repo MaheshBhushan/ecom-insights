@@ -4,3 +4,5 @@ uvicorn==0.54.0
 httpx==0.28.1
 python-dotenv>=1.0.0
 anthropic>=1.0.0
+sqlalchemy>=2.0.25  # dashboard API reads the warehouse
+psycopg2-binary>=2.9.9
