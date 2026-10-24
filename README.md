@@ -248,6 +248,17 @@ python -m pytest -q tests/test_comparison.py tests/test_grounding.py tests/test_
 
 The briefing also demonstrates the check working as intended on real output: it flags the sample data's 100% repeat-customer rate (`repeat_customer_rate_pct`) as an artifact of the synthetic dataset rather than treating it as a genuine finding — see "Limitations" below.
 
+## Report archive (MinIO and OpenSearch)
+
+`src/storage/report_archive.py` stores every file in `reports/` under a versioned MinIO key, `reports/<file-name>/v<NNNN>/<file name>`, and indexes one metadata document per object in the `ecom-reports` OpenSearch index. The document records the object key, version, SHA-256, size, content type, and the Postgres source identifiers: database, star-schema tables with their primary keys, and the `date_key` range from `kpis.json`. A re-run writes a new version only when a file's checksum changes. `fetch_report` reads an object back and rejects it if the bytes no longer match the indexed checksum.
+
+```bash
+docker compose -f docker-compose.storage.yml up -d   # needs MINIO_ACCESS_KEY and MINIO_SECRET_KEY
+python -m src.storage.report_archive
+```
+
+`tests/test_report_archive.py` round-trips the committed report fixtures through in-memory MinIO and OpenSearch fakes. The tests have not been run against live MinIO or OpenSearch containers.
+
 ## Limitations
 
 - **The data is synthetic.** `src/main.py::create_dummy_data()` generates it deterministically from `config.DATA_ANCHOR_DATE`; it is not real transaction data.
