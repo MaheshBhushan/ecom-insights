@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build="2024.2.0" source-platform="linux" version="18.1">
+  <datasources>
+    <datasource caption="Revenue" inline="true" name="postgres.revenue" version="18.1">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="localhost:5433/ecommerce" name="warehouse">
+            <connection class="postgres" server="localhost" port="5433" dbname="ecommerce" authentication="username-password" username="" sslmode="" one-time-sql="" />
+          </named-connection>
+        </named-connections>
+        <relation connection="warehouse" name="Revenue" type="text">-- Monthly revenue over revenue statuses. NULL statuses remain included, as in compute_kpis().
+SELECT date_trunc('month', d.date_key)::date AS month,
+       round(sum(f.gross_revenue), 2) AS gross_revenue,
+       round(sum(f.discount_amount), 2) AS discount_amount,
+       round(sum(f.net_revenue), 2) AS net_revenue,
+       round(sum(f.cost), 2) AS cost,
+       count(DISTINCT f.order_id) AS orders
+FROM public.fact_sales f
+JOIN public.dim_date d ON d.date_key = f.date_key
+WHERE f.order_status IS DISTINCT FROM 'Cancelled'
+GROUP BY 1</relation>
+      </connection>
+      <column datatype="date" name="[month]" role="dimension" type="ordinal" />
+      <column datatype="real" name="[gross_revenue]" role="measure" type="quantitative" />
+      <column datatype="real" name="[discount_amount]" role="measure" type="quantitative" />
+      <column datatype="real" name="[net_revenue]" role="measure" type="quantitative" />
+      <column datatype="real" name="[cost]" role="measure" type="quantitative" />
+      <column datatype="integer" name="[orders]" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="Cohorts" inline="true" name="postgres.cohorts" version="18.1">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="localhost:5433/ecommerce" name="warehouse">
+            <connection class="postgres" server="localhost" port="5433" dbname="ecommerce" authentication="username-password" username="" sslmode="" one-time-sql="" />
+          </named-connection>
+        </named-connections>
+        <relation connection="warehouse" name="Cohorts" type="text">-- Customers grouped by the month of their first revenue order.
+-- months_since_first = 0 holds each cohort's full size.
+WITH activity AS (
+    SELECT f.customer_id, date_trunc('month', f.date_key)::date AS month,
+           sum(f.net_revenue) AS net_revenue
+    FROM public.fact_sales f
+    WHERE f.order_status IS DISTINCT FROM 'Cancelled'
+    GROUP BY 1, 2
+), firsts AS (
+    SELECT customer_id, min(month) AS cohort_month FROM activity GROUP BY 1
+)
+SELECT c.cohort_month,
+       ((extract(year FROM a.month) - extract(year FROM c.cohort_month)) * 12
+        + extract(month FROM a.month) - extract(month FROM c.cohort_month))::int AS months_since_first,
+       count(*) AS active_customers,
+       round(sum(a.net_revenue), 2) AS net_revenue
+FROM activity a
+JOIN firsts c ON c.customer_id = a.customer_id
+GROUP BY 1, 2</relation>
+      </connection>
+      <column datatype="date" name="[cohort_month]" role="dimension" type="ordinal" />
+      <column datatype="integer" name="[months_since_first]" role="dimension" type="ordinal" />
+      <column datatype="integer" name="[active_customers]" role="measure" type="quantitative" />
+      <column datatype="real" name="[net_revenue]" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="Missing Data" inline="true" name="postgres.missing_data" version="18.1">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="localhost:5433/ecommerce" name="warehouse">
+            <connection class="postgres" server="localhost" port="5433" dbname="ecommerce" authentication="username-password" username="" sslmode="" one-time-sql="" />
+          </named-connection>
+        </named-connections>
+        <relation connection="warehouse" name="Missing Data" type="text">-- NULL counts for every nullable warehouse column, plus calendar gaps.
+SELECT 'fact_sales' AS table_name, col AS column_name, total_rows, missing_rows
+FROM (SELECT count(*) AS total_rows,
+             count(*) FILTER (WHERE order_status IS NULL) AS order_status,
+             count(*) FILTER (WHERE discount_rate IS NULL) AS discount_rate,
+             count(*) FILTER (WHERE discount_amount IS NULL) AS discount_amount,
+             count(*) FILTER (WHERE cost IS NULL) AS cost
+      FROM public.fact_sales) t
+CROSS JOIN LATERAL (VALUES ('order_status', t.order_status), ('discount_rate', t.discount_rate),
+                           ('discount_amount', t.discount_amount), ('cost', t.cost)) v(col, missing_rows)
+UNION ALL
+SELECT 'dim_product', col, total_rows, missing_rows
+FROM (SELECT count(*) AS total_rows,
+             count(*) FILTER (WHERE description IS NULL) AS description,
+             count(*) FILTER (WHERE category IS NULL) AS category,
+             count(*) FILTER (WHERE brand IS NULL) AS brand,
+             count(*) FILTER (WHERE cost IS NULL) AS cost,
+             count(*) FILTER (WHERE profit_margin IS NULL) AS profit_margin,
+             count(*) FILTER (WHERE price_tier IS NULL) AS price_tier
+      FROM public.dim_product) t
+CROSS JOIN LATERAL (VALUES ('description', t.description), ('category', t.category),
+                           ('brand', t.brand), ('cost', t.cost), ('profit_margin', t.profit_margin),
+                           ('price_tier', t.price_tier)) v(col, missing_rows)
+UNION ALL
+SELECT 'dim_customer', col, total_rows, missing_rows
+FROM (SELECT count(*) AS total_rows,
+             count(*) FILTER (WHERE country IS NULL) AS country,
+             count(*) FILTER (WHERE full_name IS NULL) AS full_name
+      FROM public.dim_customer) t
+CROSS JOIN LATERAL (VALUES ('country', t.country), ('full_name', t.full_name)) v(col, missing_rows)
+UNION ALL
+-- Calendar days between the first and last sale with no fact rows of any status.
+SELECT 'dim_date', 'days_without_sales',
+       count(*), count(*) FILTER (WHERE NOT EXISTS
+           (SELECT 1 FROM public.fact_sales f WHERE f.date_key = d.date_key))
+FROM public.dim_date d
+WHERE d.date_key BETWEEN (SELECT min(date_key) FROM public.fact_sales)
+                     AND (SELECT max(date_key) FROM public.fact_sales)</relation>
+      </connection>
+      <column datatype="string" name="[table_name]" role="dimension" type="nominal" />
+      <column datatype="string" name="[column_name]" role="dimension" type="nominal" />
+      <column datatype="integer" name="[total_rows]" role="measure" type="quantitative" />
+      <column datatype="integer" name="[missing_rows]" role="measure" type="quantitative" />
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name="Monthly net revenue">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Revenue" name="postgres.revenue" />
+          </datasources>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Line" />
+          </pane>
+        </panes>
+        <rows>[postgres.revenue].[sum:net_revenue:qk]</rows>
+        <cols>[postgres.revenue].[tmn:month:ok]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="Cohort activity">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Cohorts" name="postgres.cohorts" />
+          </datasources>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Square" />
+            <encodings>
+              <color column="[postgres.cohorts].[sum:active_customers:qk]" />
+              <text column="[postgres.cohorts].[sum:active_customers:qk]" />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[postgres.cohorts].[tmn:cohort_month:ok]</rows>
+        <cols>[postgres.cohorts].[none:months_since_first:ok]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="Missing values">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Missing Data" name="postgres.missing_data" />
+          </datasources>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Bar" />
+            <encodings>
+              <text column="[postgres.missing_data].[sum:missing_rows:qk]" />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[postgres.missing_data].[none:table_name:ok] / [postgres.missing_data].[none:column_name:ok]</rows>
+        <cols>[postgres.missing_data].[sum:missing_rows:qk]</cols>
+      </table>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name="Warehouse validation">
+      <size maxheight="800" maxwidth="1200" minheight="800" minwidth="1200" />
+      <zones>
+        <zone id="1" type="layout-basic" x="0" y="0" w="100000" h="100000">
+          <zone id="2" name="Monthly net revenue" x="0" y="0" w="100000" h="40000" />
+          <zone id="3" name="Cohort activity" x="0" y="40000" w="60000" h="60000" />
+          <zone id="4" name="Missing values" x="60000" y="40000" w="40000" h="60000" />
+        </zone>
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>
